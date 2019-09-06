@@ -1,0 +1,238 @@
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    background:#263538
+}
+
+.container{
+    height:100%;
+    width:960px;
+    margin:0 auto;
+    padding:10px;
+    background:white;
+    }
+
+.contentHolder{
+    display:inline-block;
+    margin-left:25px;
+    
+}
+
+/*css for fading deatils table on dropdownPrice click*/
+
+
+.fade tr td,.fade tr th,.fade div{
+    border:1px darkgray solid;
+    color:gray !important;
+    background:lightgray;
+}
+
+.fade div{
+    border:none;
+}
+
+
+
+/*=========*/
+.section{
+    margin-top:20px;
+    margin-bottom:5px;                
+    padding:5px;
+    background:#525560;
+    background-image:linear-gradient(to right,#263538, white);
+    font-size:12pt;
+    font-weight:bold;
+    color:whitesmoke;
+    letter-spacing: 1px;
+    
+}
+
+.spacer{
+    margin-top: 10px;
+    margin-bottom:10px;
+    border:1px black solid;
+    
+    display:inline-block;
+    width:100%;
+}
+
+#pricing{
+    margin-top:5px;
+}
+
+.tblClean{
+    border-collapse: collapse;
+    background:white;                                                                  
+}
+.tblClean th, td{
+    border:1px black solid;
+    white-space: nowrap;
+    padding-left: 5px; 
+    padding-right: 5px;
+    height:22px;
+    vertical-align:middle;
+}
+
+.tblClean td{
+    text-align:right;
+}
+
+.tblClean  tr:nth-child(odd) {background-color: rgb(222, 222, 243);}
+
+
+
+/*css for the dollar symbol*/
+
+
+
+#vendor{width:150px};
+
+
+#details #dateCost{                
+    text-align:right;
+}
+
+#details{
+    width:100%;
+}
+
+#details #dateCost #curAmt,#details #dateCost #curSymbol{
+    color:inherit;
+    font-weight:inherit;
+}
+
+
+
+#curSymbol{
+    
+    display:inline-block;
+    font-weight: bold;
+    
+    
+}
+
+.priceTotal{
+    min-width:80px
+}
+
+#curAmt, .priceTotal{
+    width:60px;
+    display:inline-block;                
+}
+
+#curAmt, #curSymbol{
+    font-weight:bold;
+    color:green;
+}
+
+/*Styling Main Dropdown*/
+#dropdownPrice{
+    font-weight:bold;
+    font-size:10pt;
+    background:white;
+    border:none;
+    width:100%;
+    
+    
+}
+
+#dropDownHolder{
+    padding:5px;
+    border:1px black solid;
+    border-bottom: none;
+    background:white;              
+}
+
+
+
+.tdRight{
+    text-align:right;                
+}
+
+
+.tdLeft{
+    text-align:left !important;
+    
+
+}
+
+
+/*column widths for tblCalcs and other elememts*/
+
+.tblClean input{
+    width:50px;
+    text-align:right;
+}
+
+.volumeM, .stoneVol, .metricVolume, .m3Style{
+    color:blue;    
+    font-weight: bold;
+}
+
+.tblClean td{
+    width:70px
+}
+
+
+
+.borderTop, .borderBtm{
+    border:none;
+    border-top: 1px black solid;
+    background:white;
+}
+
+
+
+.borderTop th{
+    border-left:none;
+    border-right:none;
+}
+
+
+
+.borderBtm{    
+    border:none;           
+    border-bottom: 1px black solid;                
+}
+
+
+
+.hide, .hide td{
+    visibility: hidden;  
+    border:none;
+    background:purple;
+}
+
+#tblPrice{
+    width:100%;
+}
+
+#tblPrice div{
+    color:black;
+    font-weight:normal;
+}
+
+#tblCalcsStone {
+    border:none;
+}
+#tblFloorHolder{
+    background:red;
+    width:100%;
+    margin:0px;
+}
+#stonePriceTitle{
+    background:rgb(190, 190, 190);
+    text-align:center;
+}
+
+#divLeft, #divRight{
+    width:50%;
+    height:100px;
+}
+

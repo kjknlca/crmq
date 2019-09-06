@@ -1,0 +1,112 @@
+{
+	"pricetypes": {
+		"typical": {
+			"desc": "Typical",
+			"vendor": "St John's",
+            "date": "May 11 - 2017",
+            "walls9": ["Labour - 9' Walls", 19.00, "LF"],
+			"walls8": ["Labour - 8' Walls", 17.00, "LF"],
+			"walls4": ["Labour - 4' Walls", 14.00, "LF"],			
+            "footings": ["Labour - Footings", 4.00, "LF"],
+            "cpad": ["Concrete Pad",50,"EACH"],
+            "20mpa": ["Concrete - 20mpa", 165.00, "m<sup>3</sup>"],
+			"25mpa": ["Concrete - 25mpa", 175.00, "m<sup>3</sup>"],			            
+            "stone": ["Stone - w/t and floors", 21.00, "T"]
+            
+		},
+		"special": {
+			"desc": "Special Pricing",
+			"vendor": "KMK - Horizon Homes",
+			"date": "May 11 - 2017",			
+			"walls9": ["Labour - 9' Walls", 17.30, "LF"],
+			"walls8": ["Labour - 8' Walls", 15.30, "LF"],
+            "walls4": ["Labour - 4' Walls", 12.60, "LF"],
+            "footings": ["Labour - Footings", 3.60, "LF"],
+			"cpad": ["Concrete Pad", 50, "EACH"],
+			"20mpa": ["Concrete - 20mpa", 155.00, "m<sup>3</sup>"],
+			"25mpa": ["Concrete - 25mpa", 165.00, "m<sup>3</sup>"],
+			"stone": ["Stone - w/t and floors", 20.00, "T"]
+		},
+		"nlc79899": {
+			"desc": "79899 Newfoundland & Labrador Corporation",
+			"vendor": "BILL CLARKE",
+			"date": "May 11 - 2017",
+			"walls9": ["Labour - 9' Walls", 17.00, "LF"],
+			"walls8": ["Labour - 8' Walls", 15.00, "LF"],
+			"walls4": ["Labour - 4' Walls", 0, "n/a"],
+            "footings": ["Labour - Footings", 5.00, "LF"],
+            "cpad": ["Concrete Pad", 50, "EACH"],
+			"20mpa": ["Concrete - 20mpa", 0, "n/a"],
+			"25mpa": ["Concrete - 25mpa", 165.00, "m<sup>3</sup>"],
+			"stone": ["Stone - w/t and floors", 20.00, "T"]
+		},
+		"ootown": {
+			"desc": "OUT OF TOWN / BAY BULLS",
+			"vendor": "HARBOUR CONST.",
+			"date": "May 11 - 2017",
+			"walls9": ["Labour - 9' Walls", 20.00, "LF"],
+			"walls8": ["Labour - 8' Walls", 18.00, "LF"],
+			"walls4": ["Labour - 4' Walls", 14.50, "LF"],
+            "footings": ["Labour - Footings", 4.00, "LF"],
+            "cpad": ["Concrete Pad", 24, "EACH"],
+			"20mpa": ["Concrete - 20mpa", 180.00, "m<sup>3</sup>"],
+			"25mpa": ["Concrete - 25mpa", 192.00, "m<sup>3</sup>"],
+			"stone": ["Stone - w/t and floors", 24.00, "T"]
+		}
+
+	},
+	"priceitems": {
+		"walls": {
+			"walls9": {
+				"name": "Nine Foot",
+				"height": [9, "ft"],
+				"width": [8, "in"],
+				"material": "20mpa"
+			},
+			"walls8": {
+				"name": "Eight Foot",
+				"height": [8, "ft"],
+				"width": [8, "in"],
+				"material": "20mpa"
+			},
+			"walls4": {
+				"name": "Four Foot",
+				"height": [4, "ft"],
+				"width": [8, "in"],
+				"material": "20mpa"
+			},
+			"footings": {
+				"name": "Footing",
+				"id": "footings",
+				"height": [8, "in"],
+				"width": [16, "in"],
+				"material": "20mpa"
+			}
+		},
+		"floors": {
+			"floor": {
+                "name":"Floor",
+                "area": [0, "sf"],
+				"depthConc": [5, "in"],
+				"depthStone": [4, "in"],
+				"material": "25mpa",
+				"base": "stone"
+			},
+			"slab": {
+                "name":"Slab",
+				"length": [0, "ft"],
+				"width": [0, "ft"],
+				"depthConc": [6, "in"],
+				"depthStone": [6, "in"],
+				"material": "25mpa",
+				"base": "stone"
+
+			},
+			"concrete pad": {
+                "name":"Concrete Pad",
+				"material": "cpad"
+			}
+		}
+
+	}
+}

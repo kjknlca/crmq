@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html class="img-no-display"
+    ><head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Weir Proposal</title>
+        <link rel="stylesheet" type="text/css" href="mystyle.css">
+        <script type="text/javascript" src="jquery-1.12.4.min.js"></script>         
+        <script type="text/javascript" src="myjavascript.js"></script> 
+        <script>
+           
+             $(document).ready(function(){
+
+                /*script layout*
+                    Set Global Variables
+                    Load Json
+                    Populate DropDown
+                    Create Function Calls for All Input Change Events
+                    Construct Price, Wall, Floor(2), Pad Tables
+                    Code Functions for Updating Tables
+                    Code for formating functions
+                /
+
+                /*Global Variable*/
+                var milsInch = 0.0254;
+                var milsFeet = 0.3048;
+                var metricSF = 0.0929;
+                var stoneVolConversionFactor = 2.25;
+                var defaulWeepTileWeight = "";
+                var noMoney = formatMoney(0);
+                var jsonPrices
+                
+                
+                dropdownPrice = $("#dropdownPrice")
+                tblPriceBody = $("#tblPrice > tbody")
+                tblCalcsWallBody = $("#tblCalcsWall > tbody");
+                tblCalcsFloorBody = $("#tblCalcsFloor > tbody");
+                tblCalcsFloorPrice = $("#tblCalcsFloorPrice");                
+                
+                
+                
+//******************  Load Price Json Start *****************************                
+                //loading prie Json object
+                //all functions that need acces have to be called from this function
+                $.getJSON("prices.json", function(jsonData){
+                    
+                    jsonPrices = jsonData
+
+                    //populate dropdown with json
+                    $.each(jsonPrices['pricetypes'],function(key,value){
+                        dropdownPrice.append($('<option></option>').attr('value', key).text(value.desc));
+                    });
+
+                    //make sure typical is selected                    
+                    dropdownPrice.val('typical');
+
+                    //poupulate the details table with details of selected item.                    
+                    maketblPrice(dropdownPrice.val());
+                    maketblCalcsWall();
+                    maketblCalcsFloor();
+                    //Concrete Pads arent big enough to warrant a constructor function
+
+                    //******************  Text Boxes and DropDown Evens START *********************  
+                    //loading json is asynchronous so input controls have to be put her to make
+                    //sure everything is ready or they won't fire. 
+                        //drowndown change function
+                        selectedVendor = dropdownPrice.val()
+                        dropdownPrice.change(function(){                            
+                            selectedVendor = $(this).val();
+                            maketblPrice(selectedVendor); 
+                            setPriceTotals(dropdownPrice.val());  
+                            //When a New Vendor is selected all values on the
+                            //page have to be updated.
+                           setPageTotals(selectedVendor);
+                        });
+
+                        //toggle fade the table on dropdown
+                        dropdownPrice.click(function(){
+                            $("#tblPrice").toggleClass('fade');
+                        })  
+                        //always remove fade on lost focus  
+                        dropdownPrice.focusout(function (){
+                            $("#tblPrice").removeClass('fade')
+                        })
+
+
+                        //input linear feet for walls start
+                        $(".inputLF").on("input", function() {
+                            calcWallValues($(this).val(),$(this).closest('tr'),selectedVendor)
+                            setPriceTotals(dropdownPrice.val());
+                        })
+
+                        //input square feet for floors start
+                        $(".inputSF").on("input", function() {
+                            calcFloorPrice($(this).val(),$(this).closest('tr'),selectedVendor)
+                            calcStoneWeightPrice(selectedVendor);
+                            setPriceTotals(dropdownPrice.val());
+                        })
+                        
+                        $("#weepDefault").on("input", function() {
+                            calcStoneWeightPrice(selectedVendor); 
+                            setPriceTotals(dropdownPrice.val());                           
+                        })
+                    
+                        $(".inputPD").on("input", function() {
+                            calcPadPrice($(this).val(),$(this).attr("id"),selectedVendor); 
+                            setPriceTotals(dropdownPrice.val());                           
+                        })
+
+                    //******************  Text Boxes and DropDown Evens END ********************* 
+
+                });
+//******************  Load Price Json END *****************************                     
+
+
+
+
+//******************   Make Table Price Start *****************************
+                //creates HtML code for details table based on dropdown
+                function maketblPrice(pricetype){
+                    
+                    
+                    
+                    var markup=""
+                    var vendor = jsonPrices['pricetypes'][pricetype].vendor;
+                    var pricedate = jsonPrices['pricetypes'][pricetype].date;
+                    
+                    tblPriceBody.empty();//clear table
+                    var tableID = tblPriceBody.closest('table').attr("id")+"_";
+                    
+                    //loopthrough prices
+                    $.each(jsonPrices['pricetypes'][pricetype],function(key,value){
+                        
+                        //return will skip to the next item in the array
+                        //I don't want to write these values in a loop.
+                        if (key=="desc" || key=="vendor" || key=="date" ){
+
+                            return
+                        }
+
+                        //the rest of the values are arrays and need to be looped throug
+                        markup+="<tr>"
+                        $.each(value,function (index,property){
+                            if (index==0){
+                                markup+="<td class='tdLeft'>"                                  
+                            }else{
+                                markup+="<td>"                         
+                            }
+                            
+                            //format price as currency
+                            if (index==1) {
+                                property = formatMoney(property)
+                                markup += "<div id='curSymbol'>$</div><div id='curAmt'>"
+                                markup += property
+                                markup += "</div>"
+                                property
+                            }else{
+                                markup+= property
+                            }
+                            
+                            markup+="</td>"
+                            
+                        })
+
+                        markup +="<td id ='" + tableID + key + "_amt'></td>"
+
+                        markup+="<td style='width:100px;'>"
+                        +"<div id='curSymbol'style='float:left;width:20px;color:green;font-weight:bold'>$</div>"
+                        +"<div style='color:green;font-weight:bold'"
+                        +"id='"+ tableID + key +"'>0.00</div>"
+                        +"</td>"
+                        +"</tr>"//close current row
+                        
+                    });
+
+                    
+                    //markup = markupHead + markup
+                    tblPriceBody.append(markup)
+                    $("#pricedate").html(vendor +"<br> Prices as of "+ pricedate)
+                };//end maketblPrice
+//******************   Make Table Price END *****************************     
+
+
+
+//******************   Make Table CALC WALL START ***************************** 
+                function maketblCalcsWall(){
+                    markup=""
+                    tblCalcsWallBody.empty(); //clear current table
+                    $.each(jsonPrices['priceitems']['walls'],function(key,value){
+                        widthMet = toMetric(value['width'][0], value['width'][1])
+                        heightMet = toMetric(value['height'][0], value['height'][1])
+                        areaMet = (heightMet * widthMet).toFixedDown(3)
+
+                        markup += "<tr>"
+                        + "<td class='tdLeft'>"
+                        +  value['name']
+                        + "</td>"
+
+                        + "<td class='materialM'>"
+                        +  value["material"]
+                        + "</td>"
+
+                        + "<td class='widthI'>"
+                        +  value['width'][0] + value['width'][1]
+                        + "</td>"
+                        + "<td class='widthM'>"
+                        +  widthMet + "m"
+                        + "</td>"
+
+                        + "<td class='heightI'>"
+                        +  value['height'][0] + value['height'][1]
+                        + "</td>"
+                        + "<td class='heightM'>"
+                        +  heightMet + "m"
+                        + "</td>"
+
+                        + "<td class='lengthI'>"
+                        +  "<input type='text' id=" + key + " class='inputLF'> ft"
+                        + "</td>"
+
+                        + "<td class='lengthM'>"
+                        +  "0.000m"
+                        + "</td>"
+
+                        + "<td class='volumeM vol"+ value['material'] +"'>"
+                        +  "0.000m<sup>3</sup>"
+                        + "</td>"
+
+                        + "<td class='priceVal'>"  
+                        + "<div id='curSymbol'>$</div><div id='curAmt' class="+ value["material"] +">" + noMoney + "</div>"
+                        + "</td>"
+
+                        + "<td class='labourVal'>"  
+                        + "<div id='curSymbol'>$</div><div id='curAmt' class="+ key +">" + noMoney + "</div>"
+                        + "</td>"
+
+                        markup += "</tr>"
+                         
+                    })
+
+                    tblCalcsWallBody.append(markup);
+                }
+//******************   Make Table CALC WALL END ******************************* 
+                
+
+//******************   Make Table CALC floor start ******************************* 
+                function maketblCalcsFloor(){
+                    tblCalcsFloorBody.empty();
+                    tblCalcsFloorPrice.empty();
+                    markup=""
+                    markupPrice = ""
+              
+                    //load floor Object from global json
+                    floor = jsonPrices["priceitems"]["floors"]["floor"]  
+                    
+                    impDepthConc =  floor.depthConc[0] 
+                    impDepthUnitConc = floor.depthConc[1]
+                    metcDepthConcrete = toMetric(impDepthConc,impDepthUnitConc);
+
+                    impDepthStone= floor.depthStone[0] 
+                    impDepthStoneUnit = floor.depthStone[1]
+                    metricDepthStone = toMetric(impDepthStone,impDepthStoneUnit);
+                    //Start Details Table
+
+                    markup += "<tr class='tdRight'>"  
+                    + "<td class ='tdLeft'>"  
+                    + "Concrete"                          
+                    + "</td>"
+                    
+                    + "<td>"  
+                    + floor.material                          
+                    + "</td>"
+                    
+                    //start depth
+                    markup += "<td class='depth'>"
+                    + impDepthConc + impDepthUnitConc
+                    + "</td>"
+                    
+                    + "<td class='metricDepthConc'>"
+                    +  metcDepthConcrete +"m"                          
+                    + "</td>"
+                    + "</tr>"
+                    
+                    //second Row of detailsSection
+                    markup += "<tr class='tdRight '>"  
+                    //layer
+                    + "<td class='tdLeft'>"  
+                    + "Base"
+                    + "</td>"
+                    
+                    //material
+                    + "<td style='text-transform: capitalize;'>"  
+                    + floor.base                          
+                    + "</td>"
+                    
+                    //depth Span Cell one
+                    markup += "<td  class='depth'>" 
+                    + impDepthStone + impDepthStoneUnit 
+                    + "</td>"
+                    //depth Span Cell Two
+                    + "<td class='metricDepthStone'>"
+                    +  metricDepthStone + "m"
+                    + "</td>"
+                    + "</tr>"
+
+                    //end depth
+                    //End Details Table
+                //===================================================
+
+                //===================================================
+                    //start Price table
+                    
+                    markupPrice += "<tr>"
+                    + "<th colspan='4'>Floor Price</th>"
+                    + "<td class='hide'></td>"
+                    + "</tr>"
+
+                    markupPrice += "<tr>"  
+                    + "<th colspan='2'>Area</th>"
+                    + "<th>Volume</th>"
+                    + "<th>Price</th>"
+                    + "<td class='hide'></td>"
+                    + "</tr>"
+                    
+                    markupPrice += "<tr>"
+                    + "<td class='imperialArea'>"  
+                    + "<input class='inputSF'>sf"                          
+                    + "</td>"
+                    
+                    + "<td>" 
+                    + "<span class='metricArea'>0.000</span>m<sup>2</sup"                          
+                    + "</td>"
+                    //end area
+
+                    markupPrice += "<td class='volumeM vol"+ floor["material"] +"'>"  
+                    + "<span class='metricVolume'>0.000</span>m<sup>3</sup>"                          
+                    + "</td>"
+                    + "<td class='priceVal'>"  
+                    + "<div id='curSymbol'>$</div><div id='curAmt' class="+ floor["material"] +">" + noMoney + "</div>"
+                    + "</td><td class='hide'></td>"
+                    + "</tr>"                   
+
+                    //Stone Volume Section
+                    markupPrice += "<tr>"                   
+                    + "<th colspan='4'id ='stonePriceTitle'>"     
+                    + "Stone Volume <span id=stoneVolume>0.000</span>m<sup>3</sup> Weight"
+                    + "</th><td class='hide'></td>"
+                    + "</tr>"                
+
+                    markupPrice += 
+                    + "<tr>"
+                        + "<th >W/T</th>"
+                        + "<th>Floor</th>"
+                        + "<th>Total</th>"
+                        + "<th>Price</th><td class='hide'></td>"
+                    + "</tr>"
+                
+                    markupPrice += 
+                    + "<tr class='tdRight'>"
+                        + "<td><input id='weepDefault' disabled value='"+ defaulWeepTileWeight +"'>T</td>"
+                        + "<td><span class='floorStoneWeight'>0.000</span>T</td>"
+                        + "<td><span id='stone' class='totalStoneWeight'>0.000</span>T</td>"
+                        + "<td class='priceVal'>"  
+                        + "<div id='curSymbol'>$</div>"
+                        + "<div id='curAmt' class= 'stone' >"+noMoney+"</div>"
+                        + "</td><td class='hide'></td>"
+                    + "</tr>"
+
+                    tblCalcsFloorBody.append(markup);
+                    tblCalcsFloorPrice.append(markupPrice);
+                }
+//******************   Make Table CALC floor END ******************************* 
+
+          
+//******************  FLOOR TABLE CALCULATIONS START *********************
+                //FLOOR vALUES sTART
+                function calcWallValues(measureVal,thisTR,selectedVendor){
+                    measureUni = thisTR.find('.lengthI').text();
+                    metricHeight = thisTR.find(".heightM").text().slice(0,-1);
+                    metricWidth = thisTR.find(".widthM").text().slice(0,-1);
+                    metricLength = toMetric(measureVal,measureUni)
+                    metricVolume = (metricHeight * metricWidth * metricLength)
+                    metricVolume = metricVolume.toFixedDown(3)
+
+                    //======= Write Calcs =======    
+                    thisTR.find(".lengthM").html(metricLength+"m");
+                    //formatMetric volume to have 3 decimal places
+                    // to make sure it shows trailing zeros and append
+                    
+                    thisTR.find(".volumeM").html(formatMoney(metricVolume,3) + "m<sup>3</sup>");
+
+                    //======= Write Prices ======= 
+                    //Find the cell by Class then find the curAmt Div and extract it's class
+                    //the class stores what item from the JSON file stores the price of that
+                    //Item
+                    materialID = thisTR.find(".priceVal").find("#curAmt").attr("class");
+                    laborID = thisTR.find(".labourVal").find("#curAmt").attr("class");
+ 
+                  //bracket notation to access properties of an obe
+                    materialPrice = jsonPrices["pricetypes"][selectedVendor][materialID][1]
+                    laborPrice =    jsonPrices["pricetypes"][selectedVendor][laborID][1]
+                    materialPrice = formatMoney((materialPrice * metricVolume));
+                    laborPrice = formatMoney((laborPrice * measureVal));
+
+                    thisTR.find(".priceVal").find("#curAmt").html(materialPrice);
+                    thisTR.find(".labourVal").find("#curAmt").html(laborPrice);
+
+                }//FLOOR VALUES END
+//******************  FLOOR TABLE CALCULATIONS END *********************
+
+
+
+//******************  Floor  CONCRETE CALCULATIONS START *********************
+
+                function calcFloorPrice(measureVal,thisTR,selectedVendor){
+                    
+                    areaSF = measureVal;
+                    areaUni = $(".imperialArea").text();
+                    floorAreaMetric = toMetric(areaSF,areaUni);                    
+                    currentAmount = thisTR.find("#curAmt")
+
+                    if (floorAreaMetric != "0.000"){
+                        //retrieve value and slice off last character "m"
+                        floorDepthMetric = $(".metricDepthConc").text().slice(0,-1);
+                        floorVolMetric = (floorAreaMetric * floorDepthMetric).toFixedDown(3);
+                        stoneDepthMetric = $(".metricDepthStone").text().slice(0,-1);                    
+                        stoneVolMetric = (floorAreaMetric * stoneDepthMetric).toFixedDown(3);
+                        materialID = currentAmount.attr("class");
+                        floorPriceVendor = jsonPrices["pricetypes"][selectedVendor][materialID][1]
+                        floorPrice = formatMoney(floorPriceVendor * floorVolMetric)
+                    }else{
+                        //if floor Area Metric is 0.000 set everything to the same value
+                        floorVolMetric = floorAreaMetric
+                        stoneVolMetric = floorAreaMetric
+                        floorPrice = floorAreaMetric
+                    }
+
+                    $(".metricArea").html(floorAreaMetric);
+                    $(".metricVolume").html(floorVolMetric);
+                    $("#stoneVolume").html(stoneVolMetric);
+                    currentAmount.html(floorPrice);
+                 
+                    
+                };
+//******************  Floor CONCRETE CALCULATIONS End *********************
+
+//******************  Floor STONE CALCULATIONS START *********************
+                function calcStoneWeightPrice(selectedVendor){
+                    if ($("#stoneVolume").text() != "0.000"){                                            
+                        
+                        weepStoneWeight = Number($("#weepDefault").val())
+                        //if Not a Number then set to Zero
+                        if (isNaN(weepStoneWeight)){weepStoneWeight=0}
+
+                        floorStoneWeight = (stoneVolConversionFactor * stoneVolMetric).toFixedDown(3)
+                        totalStoneWeight = floorStoneWeight + weepStoneWeight
+                        totalStoneWeight = totalStoneWeight.toFixedDown(3);
+                        stonePricePerT = jsonPrices["pricetypes"][selectedVendor]['stone'][1]
+                        stonePrice = formatMoney(stonePricePerT * totalStoneWeight)
+                        $("#weepDefault").prop("disabled",false)
+                    }else{
+                        $("#weepDefault").val("");
+                        $("#weepDefault").prop("disabled",true)
+                        floorStoneWeight = "0.000"
+                        totalStoneWeight = "0.000"
+                        stonePrice = noMoney;
+                    }
+                    
+                    //write Values 
+                    $(".floorStoneWeight").html(formatMoney(floorStoneWeight,3));
+                    $(".totalStoneWeight").html(formatMoney(totalStoneWeight,3));
+                    $("#curAmt.stone").html(formatMoney(stonePrice))
+                };
+//******************  Floor TABLE STONE CALCULATIONS END *********************
+
+
+//******************  Calc Concrte Pads Start *********************
+
+                function calcPadPrice(padNumber,itemName,currentVendor){
+                    console.log(itemName)
+                    if (!isNaN(Number(padNumber))){
+                        padVendorPrice = jsonPrices["pricetypes"][selectedVendor][itemName][1]
+                        padThisPrice = formatMoney(padVendorPrice * padNumber)
+                    }else{
+                        padThisPrice = "0.000"
+                    }
+                    
+                    $(".EACH").html(padThisPrice)
+                }
+
+//******************  Calc Concrte Pads END   *********************
+
+
+
+//******************  Set PriceTable Totals START***************************
+                function setPriceTotals(currentVendor){
+
+                //console.log("currentVendor " + currentVendor);
+                
+                var totalPrice
+                var totalAmount
+
+                $.each(jsonPrices['pricetypes'][currentVendor],function(key,value){
+                        //this items have no monetary value exit/return out of loop if found
+                    if (key=="desc" || key=="vendor" || key=="date" ){
+                        return
+                    }
+
+                    switch (value[2]){
+                        case "LF":
+                        case "EACH":
+                            totalAmount=$("#"+key).val();
+                            Number(totalAmount).toFixedDown(2)
+                        break;
+                        case "T":
+                            totalAmount=$("#"+key).text();
+                            Number(totalAmount).toFixed(3);
+                        break;                        
+                        default://covers ConcreteTypes
+                            $(".vol"+key).each(function(i,obj){
+                                totalAmount += parseFloat($(this).text().slice(0,-2));
+                            });
+                            totalAmount.toFixed(3);
+                    }
+                    
+                    totalPrice = totalAmount * value[1]
+                    if (totalPrice == 0){totalAmount="n/a"}
+
+                    $("#tblPrice_"+ key+"_amt").html(formatMoney(totalAmount,3));
+                    $("#tblPrice_"+ key).html(formatMoney(totalPrice));
+                    totalPrice =  0 //reset for next item
+                    totalAmount = 0
+                    
+                    
+
+                });//end of each loop
+                }
+//******************  Set PriceTable Totals END ***************************
+
+
+
+//******************  Set page Totals START***************************
+
+                function setPageTotals(selectedVendor){
+
+                    $("#tblCalcsWall tr").each(function(i,row){
+                        inputLf_Val = $(this).find(".inputLF").val()
+                        if(inputLf_Val == undefined){return}
+                        calcWallValues(inputLf_Val,$(this),selectedVendor)                                              
+                    });
+
+                    $("#tblCalcsFloorPrice tr").each(function(i,row){
+                        inputSf_Val = $(this).find(".inputSF").val()
+                        if(inputSf_Val == undefined){return}
+                        console.log(inputSf_Val)
+                        calcFloorPrice(inputSf_Val,$(this),selectedVendor)
+                    });
+                    
+                    //Stone Weight Only Needs Selected Vendor
+                    calcStoneWeightPrice(selectedVendor)
+
+
+                    //update Pads Doesn't need a row so I'll reference the control directly
+                    inputPad_Val = $(".inputPD").val()
+                    inputPad_ID =  $(".inputPD").attr("id")
+                    calcPadPrice(inputPad_Val,inputPad_ID,selectedVendor); 
+                    
+                }
+
+//******************  Set page Totals END  ***************************
+
+
+//**********|||||||||||||||  FORMATTING FUNCTIONS start ||||||||||||||||||||||||||*******************  
+            
+            //function to truncate numbers, no rounding, cut at three decimal places
+            Number.prototype.toFixedDown = function(digits) {
+                var re = new RegExp("(\\d+\\.\\d{" + digits + "})(\\d)"),
+                m = this.toString().match(re);
+                return m ? parseFloat(m[1]) : this.valueOf();
+            };
+            //end toFixedDone
+
+            //function to format currency and to use trailing zeros for display
+            function formatMoney(number, decPlaces, decSep, thouSep) {
+                decPlaces = isNaN(decPlaces = Math.abs(decPlaces)) ? 2 : decPlaces,
+                decSep = typeof decSep === "undefined" ? "." : decSep;
+                thouSep = typeof thouSep === "undefined" ? "," : thouSep;
+                var sign = number < 0 ? "-" : "";
+                var i = String(parseInt(number = Math.abs(Number(number) || 0).toFixed(decPlaces)));
+                var j = (j = i.length) > 3 ? j % 3 : 0;
+
+                return sign +
+                (j ? i.substr(0, j) + thouSep : "") +
+                i.substr(j).replace(/(\decSep{3})(?=\decSep)/g, "$1" + thouSep) +
+                (decPlaces ? decSep + Math.abs(number - i).toFixed(decPlaces).slice(2) : "");
+            };
+            //End formatMoney
+
+            //convert values to mentric based on unit 
+            function toMetric(impAmt,impUnit){
+
+                impUnit = $.trim(impUnit);
+                
+                var meters = 0
+                
+                if ($.isNumeric(impAmt)){
+                    if (impUnit=="ft"){
+                        meters = impAmt * milsFeet   
+                    } else if (impUnit=="in") {
+                        meters = impAmt * milsInch
+                    } else if (impUnit=="sf"){
+                        meters = impAmt * metricSF                            
+                    }
+                }else{
+                                
+                }
+                //truncate to 3 places and add trailing zeros
+
+                return formatMoney(meters.toFixedDown(3),3)
+
+            }
+            //convert values to mentric based on unit
+
+//**********|||||||||||||||  FORMATTING FUNCTIONS END ||||||||||||||||||||||||||*******************  
+
+
+})  //End of Jquery document ready
+            
+
+
+</script>
+<style>
+
+</style>
+</head>
+<body>
+<div class="container">
+<!--   Prices Start       -->
+<div class="section" id="pricing">Chose Pricing / Vendor</div>
+
+<div class='contentHolder' id='priceHolder'>
+
+<div id ="dropDownHolder">
+    <select id="dropdownPrice" name="selectprice"></select>
+</div>               
+    <table id="tblPrice" class="tblClean">
+        <thead>
+            <tr>
+                <th colspan=5 id="pricedate"></tH>
+            </tr>
+            <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Per</th>
+                <th>Amount</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+
+        <tbody></tbody>
+    </table>
+
+</div><!--Close priceHolder-->
+<!--   Prices End      -->
+
+<div class="section">Calculate Volumes / Costs</div>
+
+<div class="contentHolder">
+<!-- Calc Volumes and Amounts START -->
+
+
+
+    <table id="tblCalcsWall" class="tblClean">
+    <thead>
+    <tr>
+    <th colspan='6'>Wall Details</th>
+    <th colspan='5'>Wall Price</th>
+    </tr>
+    <tr><th>Type</th>
+    <th class='material'>Material</th>
+    <th colspan='2' class='width'>Width</th>
+    <th colspan='2' class='height'>Height</th>
+    <th colspan='2' class='length'>Length</th>
+    <th class='volume'>Volume</th>                    
+    <th>Price</th>
+    <th>Labour</th>
+    </tr>
+    </thead>
+    <tbody ></tbody>
+    </table>
+
+<!-- tlbCalFLOOR START -->
+
+<div class= "spacer"></div>
+
+<!-- tlbCalFLOOR Details START -->
+
+<div style="float:left;">
+    <table id="tblCalcsFloor" class="tblClean" >
+        <thead> 
+        <tr>
+        <th colspan='4'>Floor Details</th>                        
+        </tr>
+        <tr>
+        <th>Layer</th> 
+        <th>Material</th> 
+        <th colspan='2'>Depth</th>                                        
+        </tr>
+        </thead>                
+        <tbody>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+    </table> 
+    <div class= "spacer"></div>
+</div>
+
+<div style="float:right">
+    <table id="tblCalcsFloorPrice" class="tblClean">
+        <thead>
+        <tr>
+        <th colspan='4'>Floor Price</th>
+        <th></th>                        
+        </tr>
+        </thead> 
+        <tbody>
+        <tr>
+        <th colspan='2'>Area</th>
+        <th>Volume</th>                
+        <th>Price</th>
+        <th></th>
+        </tr>
+        <tr><td></td><tr><td></td><td></td><td></td><td></td></tr>                    
+        </tbody>
+    
+    </table> 
+
+    <div class= "spacer"></div>
+
+    <table id="tblCalcsPad" class="tblClean">
+          
+            <tr>
+                <th colspan='2'>Concrete Pads</th>                                  
+            </tr>
+              
+            <tr>
+                <th>Number</th>
+                <th>Price</th>            
+            </tr>
+        <tr>
+            <td>
+                <!--id propery is equal to the key value in priceTypes JSON-->
+                <input class="inputPD" id="cpad" >ea
+            <td class="priceVal">
+                <div id='curSymbol'>$</div>
+                <!--Class is equal to the how items are priced -->
+                <div id='curAmt' class="EACH"></div>
+            </td>
+        <tr>
+        
+    </table> 
+        
+    </div>
+<!-- tlbCalFLOOR Details end -->
+
+
+
+<!-- tlbCalcPads Details end -->
+
+
+
+
+</div>   
+
+
+
+
+    <div class="section">Slab</div>
+
+
+
+</div>
+
+
+
+</body>
+</html>
+
+
+
