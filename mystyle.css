@@ -10,6 +10,8 @@ body{
     background:#263538
 }
 
+.priceMoney{float:left;width:20px;color:green;font-weight:bold}
+
 .container{
     height:100%;
     width:960px;

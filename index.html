@@ -165,7 +165,7 @@
                         markup +="<td id ='" + tableID + key + "_amt'></td>"
 
                         markup+="<td style='width:100px;'>"
-                        +"<div id='curSymbol'style='float:left;width:20px;color:green;font-weight:bold'>$</div>"
+                        +"<div id='curSymbol' style='float:left;width:20px;color:green;font-weight:bold'>$</div>"
                         +"<div style='color:green;font-weight:bold'"
                         +"id='"+ tableID + key +"'>0.00</div>"
                         +"</td>"
@@ -524,9 +524,13 @@
                     }
                     
                     totalPrice = totalAmount * value[1]
-                    if (totalPrice == 0){totalAmount="n/a"}
+                    if (totalPrice == 0){
+                        totalAmount=""
+                    }else{
+                        totalAmount = formatMoney(totalAmount,3)
+                    }
 
-                    $("#tblPrice_"+ key+"_amt").html(formatMoney(totalAmount,3));
+                    $("#tblPrice_"+ key+"_amt").html(totalAmount);                    
                     $("#tblPrice_"+ key).html(formatMoney(totalPrice));
                     totalPrice =  0 //reset for next item
                     totalAmount = 0
